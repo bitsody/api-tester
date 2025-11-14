@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Tester - Bitsody</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 16px;
+        }
+
+        .main-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .request-section {
+            padding: 30px;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .url-bar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .method-select {
+            padding: 12px 20px;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            background: white;
+            color: #667eea;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .method-select:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .url-input {
+            flex: 1;
+            padding: 12px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .url-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .send-btn {
+            padding: 12px 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .send-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .send-btn:active {
+            transform: translateY(0);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: #666;
+            position: relative;
+            transition: color 0.3s ease;
+        }
+
+        .tab.active {
+            color: #667eea;
+        }
+
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 20px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .header-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .header-input {
+            flex: 1;
+            padding: 10px 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        .remove-btn {
+            padding: 10px 20px;
+            background: #ff4757;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .add-btn {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            margin-top: 10px;
+        }
+
+        .body-editor {
+            width: 100%;
+            min-height: 200px;
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            resize: vertical;
+        }
+
+        .response-section {
+            padding: 30px;
+        }
+
+        .response-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .response-stats {
+            display: flex;
+            gap: 20px;
+        }
+
+        .stat {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .stat-value.success {
+            color: #2ecc71;
+        }
+
+        .stat-value.error {
+            color: #e74c3c;
+        }
+
+        .response-body {
+            background: #2d3748;
+            color: #a0aec0;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .copy-btn {
+            padding: 8px 16px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .examples {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .example-btn {
+            padding: 8px 16px;
+            background: white;
+            border: 1px solid #667eea;
+            color: #667eea;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .example-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚡ API Tester</h1>
+            <p>Test your APIs instantly with a beautiful interface</p>
+        </div>
+
+        <div class="main-card">
+            <div class="request-section">
+                <div class="url-bar">
+                    <select id="method" class="method-select">
+                        <option>GET</option>
+                        <option>POST</option>
+                        <option>PUT</option>
+                        <option>PATCH</option>
+                        <option>DELETE</option>
+                        <option>HEAD</option>
+                        <option>OPTIONS</option>
+                    </select>
+                    <input type="url" id="url" class="url-input" placeholder="Enter API endpoint (e.g., https://api.github.com/users/github)" value="https://api.github.com/users/github">
+                    <button id="sendBtn" class="send-btn" onclick="sendRequest()">Send</button>
+                </div>
+
+                <div class="examples">
+                    <button class="example-btn" onclick="loadExample('github')">GitHub API</button>
+                    <button class="example-btn" onclick="loadExample('jsonplaceholder')">JSONPlaceholder</button>
+                    <button class="example-btn" onclick="loadExample('httpbin')">HTTPBin</button>
+                    <button class="example-btn" onclick="loadExample('catfact')">Cat Facts</button>
+                </div>
+
+                <div class="tabs">
+                    <button class="tab active" onclick="switchTab('headers')">Headers</button>
+                    <button class="tab" onclick="switchTab('body')">Body</button>
+                    <button class="tab" onclick="switchTab('auth')">Auth</button>
+                </div>
+
+                <div id="headers-tab" class="tab-content active">
+                    <div id="headers-container">
+                        <div class="header-row">
+                            <input type="text" class="header-input" placeholder="Key" value="Content-Type">
+                            <input type="text" class="header-input" placeholder="Value" value="application/json">
+                            <button class="remove-btn" onclick="removeHeader(this)">Remove</button>
+                        </div>
+                    </div>
+                    <button class="add-btn" onclick="addHeader()">+ Add Header</button>
+                </div>
+
+                <div id="body-tab" class="tab-content">
+                    <textarea id="bodyEditor" class="body-editor" placeholder='Enter request body (JSON)
+Example:
+{
+  "name": "John Doe",
+  "email": "john@example.com"
+}'></textarea>
+                </div>
+
+                <div id="auth-tab" class="tab-content">
+                    <div class="header-row">
+                        <input type="text" id="authKey" class="header-input" placeholder="Authorization Key" value="Bearer">
+                        <input type="text" id="authValue" class="header-input" placeholder="Token/API Key">
+                    </div>
+                </div>
+            </div>
+
+            <div class="response-section" id="responseSection" style="display: none;">
+                <div class="response-header">
+                    <div class="response-stats">
+                        <div class="stat">
+                            <span class="stat-label">Status</span>
+                            <span class="stat-value" id="status">-</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Time</span>
+                            <span class="stat-value" id="time">-</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Size</span>
+                            <span class="stat-value" id="size">-</span>
+                        </div>
+                    </div>
+                    <button class="copy-btn" onclick="copyResponse()">Copy Response</button>
+                </div>
+                <div class="response-body" id="responseBody"></div>
+            </div>
+
+            <div class="loading" id="loading" style="display: none;">
+                <div class="spinner"></div>
+                <p>Sending request...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentTab = 'headers';
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+            event.target.classList.add('active');
+            document.getElementById(`${tab}-tab`).classList.add('active');
+            currentTab = tab;
+        }
+
+        function addHeader() {
+            const container = document.getElementById('headers-container');
+            const row = document.createElement('div');
+            row.className = 'header-row';
+            row.innerHTML = `
+                <input type="text" class="header-input" placeholder="Key">
+                <input type="text" class="header-input" placeholder="Value">
+                <button class="remove-btn" onclick="removeHeader(this)">Remove</button>
+            `;
+            container.appendChild(row);
+        }
+
+        function removeHeader(btn) {
+            btn.parentElement.remove();
+        }
+
+        function loadExample(type) {
+            const examples = {
+                github: { url: 'https://api.github.com/users/github', method: 'GET' },
+                jsonplaceholder: { url: 'https://jsonplaceholder.typicode.com/posts/1', method: 'GET' },
+                httpbin: { url: 'https://httpbin.org/get', method: 'GET' },
+                catfact: { url: 'https://catfact.ninja/fact', method: 'GET' }
+            };
+
+            const example = examples[type];
+            document.getElementById('url').value = example.url;
+            document.getElementById('method').value = example.method;
+        }
+
+        async function sendRequest() {
+            const url = document.getElementById('url').value;
+            const method = document.getElementById('method').value;
+
+            if (!url) {
+                alert('Please enter a URL');
+                return;
+            }
+
+            const headers = {};
+            document.querySelectorAll('#headers-container .header-row').forEach(row => {
+                const inputs = row.querySelectorAll('.header-input');
+                const key = inputs[0].value.trim();
+                const value = inputs[1].value.trim();
+                if (key && value) {
+                    headers[key] = value;
+                }
+            });
+
+            const authKey = document.getElementById('authKey').value.trim();
+            const authValue = document.getElementById('authValue').value.trim();
+            if (authKey && authValue) {
+                headers['Authorization'] = `${authKey} ${authValue}`;
+            }
+
+            const bodyText = document.getElementById('bodyEditor').value.trim();
+            let body = null;
+            if (bodyText && ['POST', 'PUT', 'PATCH'].includes(method)) {
+                body = bodyText;
+            }
+
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('responseSection').style.display = 'none';
+            document.getElementById('sendBtn').disabled = true;
+
+            const startTime = Date.now();
+
+            try {
+                const response = await fetch(url, {
+                    method,
+                    headers,
+                    body
+                });
+
+                const endTime = Date.now();
+                const duration = endTime - startTime;
+
+                const responseText = await response.text();
+                let formatted;
+                try {
+                    formatted = JSON.stringify(JSON.parse(responseText), null, 2);
+                } catch {
+                    formatted = responseText;
+                }
+
+                const size = new Blob([responseText]).size;
+
+                document.getElementById('status').textContent = response.status;
+                document.getElementById('status').className = 'stat-value ' + (response.ok ? 'success' : 'error');
+                document.getElementById('time').textContent = duration + ' ms';
+                document.getElementById('size').textContent = formatBytes(size);
+                document.getElementById('responseBody').textContent = formatted;
+
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('responseSection').style.display = 'block';
+
+            } catch (error) {
+                document.getElementById('status').textContent = 'Error';
+                document.getElementById('status').className = 'stat-value error';
+                document.getElementById('time').textContent = '-';
+                document.getElementById('size').textContent = '-';
+                document.getElementById('responseBody').textContent = error.message;
+
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('responseSection').style.display = 'block';
+            } finally {
+                document.getElementById('sendBtn').disabled = false;
+            }
+        }
+
+        function copyResponse() {
+            const text = document.getElementById('responseBody').textContent;
+            navigator.clipboard.writeText(text);
+            const btn = event.target;
+            btn.textContent = 'Copied!';
+            setTimeout(() => {
+                btn.textContent = 'Copy Response';
+            }, 2000);
+        }
+
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+
+        document.getElementById('url').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendRequest();
+            }
+        });
+    </script>
+</body>
+</html>
